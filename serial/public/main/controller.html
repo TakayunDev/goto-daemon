@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width , initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0" />
+    <title>GOTO-RT1</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/mycss.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="js/jquery.ui.touch-punch.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/gamepad.js"></script>
+    <script src="js/battery-checker.js"></script>
+<script type="text/javascript">
+var imageNr = 0; // Serial number of current image
+var finished = new Array(); // References to img objects which have finished downloading
+var paused = false;
+
+function createImageLayer() {
+  var img = document.getElementById("webcam");
+  img.style.position = "absolute";
+  img.style.zIndex = -1;
+  img.onload = imageOnload;
+  img.className = "img-responsive img-rounded webcam";
+  img.src = "http://192.168.12.25:8080/?action=snapshot&n=" + (++imageNr);
+}
+
+// Two layers are always present (except at the very beginning), to avoid flicker
+function imageOnload() {
+  if (!paused) createImageLayer();
+}
+function myInterval() {
+    setInterval(function(){imageOnload();}, 1000);
+}
+
+// socket.io
+var socket = io();
+
+socket.on('battery', function(msg) {
+	alert(msg);
+});
+
+function sendCommand(cmd) {
+	socket.emit('arduino-cmd', cmd);
+}
+
+function createFormSubmit() {
+	$('form').submit(function() {
+		sendCommand($('#msg-cmd').val());
+		$('#msg-cmd').val('');
+		return false;
+	});
+}
+window.addEventListener('load', function(){createFormSubmit();});
+
+// command
+function sendCommandMove(cmd) {
+  sendCommand("body/move/"+cmd);
+  imageOnload();
+}
+function sendCommandExtension(cmd) {
+  sendCommand("body/extension/"+cmd);
+  imageOnload();
+}
+function sendCommandArm(cmd) {
+  sendCommand("head/arm/"+cmd);
+  imageOnload();
+}
+function sendCommandVideo(size) {
+  sendCommand("cam/"+size);
+}
+$(function() {
+  $("#r0-slider").slider({min:600,max:2400,value:2300,
+                         change: function(event, ui) {sendCommandArm("r/0/"+ui.value);}
+                         });
+  $("#r1-slider").slider({min:900,max:2050,value:900,
+                         change: function(event, ui) {sendCommandArm("r/1/"+ui.value);}
+                         });
+  $("#r2-slider").slider({min:770,max:2250,value:770,
+                         change: function(event, ui) {sendCommandArm("r/2/"+ui.value);}
+                         });
+});
+
+window.addEventListener('load', function(){createImageLayer();myInterval();});
+
+</script>
+</head>
+<body style="padding-top: 70px;">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">GOTO-RT1</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <form action="" class="navbar-form navbar-left">
+          	<div class="input-group">
+	          	<input id="msg-cmd" autocomplete="off" class="form-control" placeholder="Command...">
+	          	<span class="input-group-btn">
+	          	<button class="btn btn-default">送信</button>
+	          	</span>
+          	</div>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#" onclick="get_battery_quantity()">Status</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="#" onclick="sendCommandVideo('320x240')">320x240</a></li>
+                <li><a href="#" onclick="sendCommandVideo('640x480')">640x480</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container-fluid">
+    <div class="row">
+        <!-- Main -->
+        <div class="col-sm-5">
+            <img id="webcam" class="img-responsive img-rounded webcam" src="/?action=snapshot"/>
+        </div>
+        <div class="col-sm-3">
+            <blockquote style="background: -moz-linear-gradient(left, #007666, rgba(255, 255, 255, 0));background: -webkit-gradient(linear, left top, right bottom, from(#007666), to(rgba(255, 255, 255, 0)));opacity: 0.8">
+            <p>操作盤</p>
+            </blockquote>
+            <div class="center-block">
+            <div class="row">
+                <div class="col-xs-1 col-xs-offset-3 col-md-1">
+                    <div style="margin:50px"></div>
+                    <button type="button" class="btn btn-default btn-circle" id="left" onclick="sendCommandMove(this.id)">
+                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="col-xs-1 col-md-1" style="margin: 0px 20px">
+                    <button type="button" class="btn btn-default btn-circle" id="foward" onclick="sendCommandMove(this.id)">
+                    <span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
+                    </button><br>
+                    <button type="button" class="btn btn-default btn-circle" id="stop" onclick="sendCommandMove(this.id)">
+                    <span class="glyphicon glyphicon-stop" aria-hidden="true"></span>
+                    </button><br>
+                    <button type="button" class="btn btn-default btn-circle" id="back" onclick="sendCommandMove(this.id)">
+                    <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                    </button><br>
+                </div>
+                <div class="col-xs-1 col-md-1">
+                    <div style="margin: 50px"></div>
+                    <button type="button" class="btn btn-default btn-circle" id="right" onclick="sendCommandMove(this.id)">
+                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            </div>
+        </div>
+        <!-- Right Side -->
+        <div class="col-sm-2">
+            <ul class="nav nav-tabs nav-stacked fixed-sidebar">
+                <li><a href="javascript:;" onclick="sendCommandArm('light/on')">light : on</a></li>
+                <li><a href="javascript:;" onclick="sendCommandArm('light/off')">light : off</a></li>
+                <li><a href="javascript:;" onclick="sendCommandArm('hand/release')">hand : release</a></li>
+                <li><a href="javascript:;" onclick="sendCommandArm('hand/grasp')">hand : grasp</a></li>
+                <li><a href="javascript:;" onclick="sendCommandExtension('cage/open')">cage : open</a></li>
+                <li><a href="javascript:;" onclick="sendCommandExtension('cage/close')">cage : close</a></li>
+                <li><h5>R0 [Back - Left - Front]</h5></li>
+                <li><div id="r0-slider"></div></li>
+                <li><h5>R1 [Back - Top - Front]</h5></li>
+                <li><div id="r1-slider"></div></li>
+                <li><h5>R2 [Close - Right - Open]</h5></li>
+                <li><div id="r2-slider"></div></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+    <script src="js/bootstrap.min.js"></script>
+</body>
+</html>
