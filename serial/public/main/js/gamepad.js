@@ -108,7 +108,7 @@ var sendExtensionCommand = function(cmd) {
   if (cmd[0] == false) {
     cmd[0] = true;
     setTimeout(function(){cmd[0] = false}, 300);
-    sendCommandExtension(cmd);
+    sendCommandExtension(cmd[1]);
     console.log("Command of "+cmd+" sent.");
   }
 }
