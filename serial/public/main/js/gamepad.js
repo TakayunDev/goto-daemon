@@ -58,7 +58,8 @@ var armCommands = {
 };
 var extensionCommands = {
   cageOpen : [false, 'cage/open'],
-  cageClose : [false, 'cage/close']
+  cageClose : [false, 'cage/close'],
+  changeState : function(states){return [false, 'state/'+states]}
 };
 // Profile of Gamepad
 var gamepadProfileMoving = {
@@ -69,7 +70,8 @@ var gamepadProfileMoving = {
 }
 var gamepadProfileExtension = {
   6 : extensionCommands.cageOpen,
-  7 : extensionCommands.cageClose
+  7 : extensionCommands.cageClose,
+  0 : extensionCommands.changeState('startToGetBall')
 }
 var gamepadProfileArm = {
   11: 'light/toggle',
