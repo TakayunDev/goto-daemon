@@ -61,6 +61,16 @@ var extensionCommands = {
   cageClose : [false, 'cage/close'],
   changeState : function(states){return [false, 'state/'+states]}
 };
+var legCommands = {
+  set : function(where, reverse) {
+    var rev = (reverse == true)?　-1 : 1;
+    return [false, function(arg){return 'set/'+where+'/'+arg}]
+  },
+  add : function(where, reverse) {
+    var rev = (reverse == true)?　-1 : 1;
+    return [false, function(axe_value){return 'add/'+where+'/'+(rev*axe_value)}]
+  }
+}
 // Profile of Gamepad
 var gamepadProfileMoving = {
   12: moveCommands.foward,
@@ -79,6 +89,12 @@ var gamepadProfileArm = {
     0 : armCommands.addArg(0, false),
     1 : armCommands.addArg(1, true),
     3 : armCommands.addArg(2, true)
+  }
+}
+var gamepadProfileLeg = {
+  axes : {
+    1 : legCommands.add('front', false),
+    3 : legCommands.add('rear', true)
   }
 }
 //var moveCommands = ['foward', 'back', 'left', 'right', 'stop'];
@@ -130,7 +146,24 @@ var sendArmCommand = function(cmd, axe_value) {
     }
   }
 }
+var sendLegCommand = function(cmd, axe_value) {
+  if (cmd[0] == false) {
+    cmd[0] = true;
+    setTimeout(function(){cmd[0] = false}, 50);
+    var buff = '';
+    if (axe_value == undefined) {
+      buff = cmd[1];
+    } else if (!isNaN(axe_value)) {
+      buff = cmd[1](axe_value);
+    }
+    if ( buff != '' ) {
+      sendCommandLeg(buff);
+      console.log("Command of "+buff+" sent.");
+    }
+  }
+}
 
+var axe_mode = 'arm';
 function controllLoop() {
   var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
   if (!gamepads) {
@@ -158,6 +191,17 @@ function controllLoop() {
     if( buttons[i].pressed ? cmd=gamepadProfileArm[i]:false ) {
       sendLightCommand(cmd);
     }
+    // Mode Setting
+    if ( buttons[i].pressed ) {
+      if (i == 8) {
+        axe_mode = 'leg';
+        console.log('Now mode is "leg"');
+      }
+      if (i == 9) {
+        axe_mode = 'arm'
+        console.log('Now mode is "arm"');
+      }
+    }
   }
   if (!move_pressed) { 
     sendMoveCommand(moveCommands.stop);
@@ -172,12 +216,25 @@ function controllLoop() {
     sendArmCommand(armCommands.release);
   }
   
-  for (var axe_num in gamepadProfileArm.axes) {
-    var axe_value = ~~(gp.axes[axe_num]*4);
-    if ( Math.abs(axe_value) > 1 ) {
-      if (axe_value > 0) axe_value -= 1;
-      else axe_value += 1;
-      sendArmCommand(gamepadProfileArm.axes[axe_num], axe_value);
+
+  if (axe_mode == 'arm') {
+    for (var axe_num in gamepadProfileArm.axes) {
+      var axe_value = ~~(gp.axes[axe_num]*4);
+      if ( Math.abs(axe_value) > 1 ) {
+        if (axe_value > 0) axe_value -= 1;
+        else axe_value += 1;
+        sendArmCommand(gamepadProfileArm.axes[axe_num], axe_value);
+      }
+    }
+  }
+  else if (axe_mode == 'leg') {
+    for (var axe_num in gamepadProfileLeg.axes) {
+      var axe_value = ~~(gp.axes[axe_num]*4);
+      if ( Math.abs(axe_value) > 1 ) {
+        if (axe_value > 0) axe_value -= 1;
+        else axe_value += 1;
+        sendArmCommand(gamepadProfileLeg.axes[axe_num], axe_value);
+      }
     }
   }
   

@@ -70,6 +70,10 @@ function sendCommandArm(cmd) {
   sendCommand("head/arm/"+cmd);
   imageOnload();
 }
+function sendCommandLeg(cmd) {
+  sendCommand("body/leg/"+cmd);
+  imageOnload();
+}
 function sendCommandVideo(size) {
   sendCommand("cam/"+size);
 }
