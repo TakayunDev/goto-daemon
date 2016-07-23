@@ -233,7 +233,7 @@ function controllLoop() {
       if ( Math.abs(axe_value) > 1 ) {
         if (axe_value > 0) axe_value -= 1;
         else axe_value += 1;
-        sendArmCommand(gamepadProfileLeg.axes[axe_num], axe_value);
+        sendLegCommand(gamepadProfileLeg.axes[axe_num], axe_value);
       }
     }
   }
