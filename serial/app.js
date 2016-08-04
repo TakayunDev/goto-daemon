@@ -84,12 +84,14 @@ serial.on('data', function(data) {
       console.log("Return:"+serial_data);
       var jdata = JSON.parse(serial_data);
       console.log(jdata);
+      for (var key in jdata) {
+        io.emit(key, jdata[key].toString());
+      }
       serial_data = "";
     } else {
       serial_data += receive_data[i];
     }
   }
-  //io.emit('battery', data.toString());
 });
 
 
