@@ -40,8 +40,11 @@ function myInterval() {
 // socket.io
 var socket = io();
 
-socket.on('battery', function(msg) {
-	alert(msg);
+socket.on('battery_control', function(msg) {
+	alert("Balance[Control]:"+msg);
+});
+socket.on('battery_machine', function(msg) {
+	alert("Balance[Machine]:"+msg);
 });
 
 function sendCommand(cmd) {
