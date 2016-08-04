@@ -81,7 +81,7 @@ serial.on('data', function(data) {
   var receive_data = data.toString();
   for (var i = 0; i < receive_data.length; i++) {
     if (receive_data[i] == "\n") {
-      console.log("Return:"serial_data);
+      console.log("Return:"+serial_data);
       var jdata = JSON.parse(serial_data);
       console.log(jdata);
       serial_data = "";
