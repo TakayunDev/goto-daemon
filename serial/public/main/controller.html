@@ -15,6 +15,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/gamepad.js"></script>
     <script src="js/battery-checker.js"></script>
+    <script src="js/voice.js"></script>
 <script type="text/javascript">
 var imageNr = 0; // Serial number of current image
 var finished = new Array(); // References to img objects which have finished downloading
@@ -52,9 +53,14 @@ function sendCommand(cmd) {
 }
 
 function createFormSubmit() {
-	$('form').submit(function() {
+	$('form#msg-form').submit(function() {
 		sendCommand($('#msg-cmd').val());
 		$('#msg-cmd').val('');
+		return false;
+	});
+	$('form#voice-form').submit(function() {
+		voice_say($('#voice-cmd').val());
+		$('#voice-cmd').val('');
 		return false;
 	});
 }
@@ -109,11 +115,19 @@ window.addEventListener('load', function(){createImageLayer();myInterval();});
           <a class="navbar-brand" href="#">GOTO-RT1</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-          <form action="" class="navbar-form navbar-left">
+          <form action="" id="msg-form" class="navbar-form navbar-left">
           	<div class="input-group">
 	          	<input id="msg-cmd" autocomplete="off" class="form-control" placeholder="Command...">
 	          	<span class="input-group-btn">
 	          	<button class="btn btn-default">送信</button>
+	          	</span>
+          	</div>
+          </form>
+          <form action="" id="voice-form" class="navbar-form navbar-left">
+          	<div class="input-group">
+	          	<input id="voice-cmd" autocomplete="off" class="form-control" placeholder="こんにちは">
+	          	<span class="input-group-btn">
+	          	<button class="btn btn-default">発話</button>
 	          	</span>
           	</div>
           </form>
